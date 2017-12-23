@@ -13,25 +13,28 @@ import java.net.Socket;
 
 public class Server {
 	public static void main(String[] args) throws Exception {
-		ServerSocket m_ServerSocket = new ServerSocket(2004,10); // listen to connection
+		ServerSocket serverSocket = new ServerSocket(2004,10); // listen to connection
 		int id = 0; // thread id
 		while (true) {
-			Socket clientSocket = m_ServerSocket.accept(); // establishing connection
-			ClientServiceThread cliThread = new ClientServiceThread(clientSocket, id++); // pass the connection and create a new socket thread with a new thread id
-			cliThread.start(); // start the created thread
+			Socket clientSocket = serverSocket.accept(); // establishing connection
+			if (clientSocket != null) {
+				System.out.println("Client accepted, ID: " + id);
+			}
+			ClientServiceHandler clientThread = new ClientServiceHandler(clientSocket, id++); // pass the connection and create a new socket thread with a new thread id
+			clientThread.start(); // start the created thread
 		}
 	}
 }
 
-class ClientServiceThread extends Thread {
+class ClientServiceHandler extends Thread {
 	Socket clientSocket;
 	String message;
 	int clientID = -1;
 	boolean running = true;
-	ObjectOutputStream out;
-	ObjectInputStream in;
+	ObjectOutputStream outputToClient;
+	ObjectInputStream inputFromClient;
 
-	ClientServiceThread(Socket s, int i) {
+	ClientServiceHandler(Socket s, int i) {
 		clientSocket = s;
 		clientID = i;
 	}
@@ -39,38 +42,35 @@ class ClientServiceThread extends Thread {
 	void sendMessage(String msg)
 	{
 		try{
-			out.writeObject(msg);
-			out.flush();			
+			outputToClient.writeObject(msg);
+			outputToClient.flush();			
 		}
 		catch(IOException ioException){
 			ioException.printStackTrace();
 		}
 	}
 	public void run() {
-		System.out.println("Accepted Client : ID - " + clientID + " : Address - "
-				+ clientSocket.getInetAddress().getHostName());
 		try 
 		{
-			out = new ObjectOutputStream(clientSocket.getOutputStream());
-			out.flush();
-			in = new ObjectInputStream(clientSocket.getInputStream());
-			System.out.println("Accepted Client : ID - " + clientID + " : Address - "
-					+ clientSocket.getInetAddress().getHostName());
-
-
+			outputToClient = new ObjectOutputStream(clientSocket.getOutputStream());
+			outputToClient.flush();
+			inputFromClient = new ObjectInputStream(clientSocket.getInputStream());
+			System.out.println("Accepted Client : ID - " + clientID 
+					+ " : Host Name - " + clientSocket.getInetAddress().getHostName()
+					+ " : Ip Address - " + clientSocket.getInetAddress().getHostAddress());
 			do{
 				try
 				{
 					sendMessage("Press 1 for string testing\n Press 2 for the calculator \nPress 3 to exit"); // send a message to the client
-					message = (String)in.readObject(); // receive a message from the client
+					message = (String)inputFromClient.readObject(); // receive a message from the client
 
 					if(message.compareToIgnoreCase("1")==0)
 					{
 						System.out.println("User wishes to complete the string test");
 						sendMessage("Please enter a string");
-						String string1 = (String)in.readObject();
+						String string1 = (String)inputFromClient.readObject();
 						sendMessage("Please enter a string");
-						String string2 = (String)in.readObject();
+						String string2 = (String)inputFromClient.readObject();
 
 						if(string1.equals(string2))
 							sendMessage("Both strings are the same");
@@ -85,16 +85,16 @@ class ClientServiceThread extends Thread {
 						System.out.println("User wishes to complete the calculator test");
 
 						sendMessage("Press 1 for Multiply\nPress 2 for square root\n");
-						message=(String)in.readObject();
+						message=(String)inputFromClient.readObject();
 
 						if(message.equalsIgnoreCase("1"))
 						{
 							sendMessage("Please enter number 1");
-							message = (String)in.readObject();
+							message = (String)inputFromClient.readObject();
 							int a = Integer.parseInt(message);
 
 							sendMessage("Please enter number 2");
-							message = (String)in.readObject();
+							message = (String)inputFromClient.readObject();
 							int b = Integer.parseInt(message);
 
 							sendMessage(""+(a*b));
@@ -103,7 +103,7 @@ class ClientServiceThread extends Thread {
 						else if(message.equalsIgnoreCase("2"))
 						{
 							sendMessage("Please enter the number");
-							message = (String)in.readObject();
+							message = (String)inputFromClient.readObject();
 							int a = Integer.parseInt(message);
 
 							sendMessage(""+Math.sqrt(a));
@@ -120,8 +120,9 @@ class ClientServiceThread extends Thread {
 
 			}while(!message.equals("3"));
 
-			System.out.println("Ending Client : ID - " + clientID + " : Address - "
-					+ clientSocket.getInetAddress().getHostName());
+			System.out.println("Ending Client : ID - " + clientID 
+					+ " : Host Name - " + clientSocket.getInetAddress().getHostName()
+					+ " : Ip Address - " + clientSocket.getInetAddress().getHostAddress());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

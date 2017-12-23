@@ -1,5 +1,6 @@
 package ie.gmit.os;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -8,11 +9,11 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client {
-	Socket requestSocket;
-	ObjectOutputStream out;
-	ObjectInputStream in;
+	Socket clientSocket;
+	ObjectOutputStream outputToServer;
+	ObjectInputStream inputFromServer;
 	String message="";
-	String ipaddress;
+	String serverAddress;
 	Scanner stdin;
 	Client(){}
 	void run()
@@ -21,71 +22,71 @@ public class Client {
 		try{
 			//1. creating a socket to connect to the server
 			System.out.println("Please Enter your IP Address");
-			ipaddress = stdin.next();
-			requestSocket = new Socket(ipaddress, 2004); // create socket with a server port, 2004
-			System.out.println("Connected to "+ipaddress+" in port 2004");
+			serverAddress = stdin.next();
+			clientSocket = new Socket(serverAddress, 2004); // create socket with a server port, 2004
+			System.out.println("Connected to "+serverAddress+" in port 2004");
 			//2. get Input and Output streams
-			out = new ObjectOutputStream(requestSocket.getOutputStream());
-			out.flush();
-			in = new ObjectInputStream(requestSocket.getInputStream());
+			outputToServer = new ObjectOutputStream(clientSocket.getOutputStream());
+			outputToServer.flush();
+			inputFromServer = new ObjectInputStream(clientSocket.getInputStream());
 			System.out.println("Hello");
 			//3: Communicating with the server
 			do{
 				try
 				{
-					message = (String)in.readObject();
+					message = (String)inputFromServer.readObject();
 					System.out.println(message);
 					message = stdin.next();
 					sendMessage(message);
 
 					if(message.compareToIgnoreCase("1")==0)
 					{
-						message = (String)in.readObject();
+						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 						message = stdin.next();
 						sendMessage(message);
 
-						message = (String)in.readObject();
+						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 						message = stdin.next();
 						sendMessage(message);
 
-						message = (String)in.readObject();
+						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 
 					}
 					else if(message.compareToIgnoreCase("2")==0)
 					{
-						message = (String)in.readObject();
+						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 						message = stdin.next();
 						sendMessage(message);
 
 						if(message.equalsIgnoreCase("1"))
 						{
-							message = (String)in.readObject();
+							message = (String)inputFromServer.readObject();
 							System.out.println(message);
 							message = stdin.next();
 							sendMessage(message);
 
-							message = (String)in.readObject();
+							message = (String)inputFromServer.readObject();
 							System.out.println(message);
 							message = stdin.next();
 							sendMessage(message);
 
-							message = (String)in.readObject();
+							message = (String)inputFromServer.readObject();
 							System.out.println(message);
 
 						}
 
 						else if(message.equalsIgnoreCase("2"))
 						{
-							message = (String)in.readObject();
+							message = (String)inputFromServer.readObject();
 							System.out.println(message);
 							message = stdin.next();
 							sendMessage(message);
 
-							message = (String)in.readObject();
+							message = (String)inputFromServer.readObject();
 							System.out.println(message);
 
 						}
@@ -109,9 +110,9 @@ public class Client {
 		finally{
 			//4: Closing connection
 			try{
-				in.close();
-				out.close();
-				requestSocket.close();
+				inputFromServer.close();
+				outputToServer.close();
+				clientSocket.close();
 			}
 			catch(IOException ioException){
 				ioException.printStackTrace();
@@ -121,8 +122,8 @@ public class Client {
 	void sendMessage(String msg)
 	{
 		try{
-			out.writeObject(msg);
-			out.flush();
+			outputToServer.writeObject(msg);
+			outputToServer.flush();
 			System.out.println("client>" + msg);
 		}
 		catch(IOException ioException){
