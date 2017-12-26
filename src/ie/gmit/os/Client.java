@@ -12,43 +12,46 @@ public class Client {
 	Socket clientSocket;
 	ObjectOutputStream outputToServer;
 	ObjectInputStream inputFromServer;
-	String message="";
+	String message = "";
 	String serverAddress;
-	Scanner stdin;
+	Scanner sc;
 	Client(){}
 	void run()
 	{
-		stdin = new Scanner(System.in);
-		try{
-			//1. creating a socket to connect to the server
-			System.out.println("Please Enter your IP Address");
-			serverAddress = stdin.next();
-			clientSocket = new Socket(serverAddress, 2004); // create socket with a server port, 2004
+		sc = new Scanner(System.in);
+		try{			
+			System.out.println("Please Enter the Host IP Address");
+			serverAddress = sc.next();
+			// request a connection to a server
+			clientSocket = new Socket(serverAddress, 2004); 
 			System.out.println("Connected to "+serverAddress+" in port 2004");
 			//2. get Input and Output streams
 			outputToServer = new ObjectOutputStream(clientSocket.getOutputStream());
 			outputToServer.flush();
-			inputFromServer = new ObjectInputStream(clientSocket.getInputStream());
-			System.out.println("Hello");
+			inputFromServer = new ObjectInputStream(clientSocket.getInputStream());			
 			//3: Communicating with the server
 			do{
 				try
 				{
+					// receive the first menu message from the server
 					message = (String)inputFromServer.readObject();
 					System.out.println(message);
-					message = stdin.next();
+					message = sc.next();
+					// send the chosen option from the menu to the server
 					sendMessage(message);
 
 					if(message.compareToIgnoreCase("1")==0)
-					{
+					{						
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
-						message = stdin.next();
+						message = sc.next();
+						// send the login ID 
 						sendMessage(message);
 
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
-						message = stdin.next();
+						message = sc.next();
+						// send the password
 						sendMessage(message);
 
 						message = (String)inputFromServer.readObject();
@@ -59,19 +62,19 @@ public class Client {
 					{
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
-						message = stdin.next();
+						message = sc.next();
 						sendMessage(message);
 
 						if(message.equalsIgnoreCase("1"))
 						{
 							message = (String)inputFromServer.readObject();
 							System.out.println(message);
-							message = stdin.next();
+							message = sc.next();
 							sendMessage(message);
 
 							message = (String)inputFromServer.readObject();
 							System.out.println(message);
-							message = stdin.next();
+							message = sc.next();
 							sendMessage(message);
 
 							message = (String)inputFromServer.readObject();
@@ -83,7 +86,7 @@ public class Client {
 						{
 							message = (String)inputFromServer.readObject();
 							System.out.println(message);
-							message = stdin.next();
+							message = sc.next();
 							sendMessage(message);
 
 							message = (String)inputFromServer.readObject();
@@ -119,6 +122,7 @@ public class Client {
 			}
 		}
 	}
+	
 	void sendMessage(String msg)
 	{
 		try{
@@ -130,6 +134,7 @@ public class Client {
 			ioException.printStackTrace();
 		}
 	}
+	
 	public static void main(String args[])
 	{
 		Client client = new Client();
