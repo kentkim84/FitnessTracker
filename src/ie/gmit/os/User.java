@@ -1,10 +1,13 @@
 package ie.gmit.os;
 
+import java.util.Arrays;
+
 public class User {
 	private long index;
 	private String name;
 	private String address;
 	private String ppsn;
+	private String password;	
 	private long age;
 	private double weight;
 	private double height;
@@ -35,6 +38,12 @@ public class User {
 	public void setPpsn(String ppsn) {
 		this.ppsn = ppsn;
 	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
 	public long getAge() {
 		return age;
 	}
@@ -64,5 +73,11 @@ public class User {
 	}
 	public void setMeal(MealRecord[] mealRecords) {
 		this.mealRecords = mealRecords;
+	}
+	@Override
+	public String toString() {
+		return "User [index=" + index + ", name=" + name + ", address=" + address + ", ppsn=" + ppsn + ", password="
+				+ password + ", age=" + age + ", weight=" + weight + ", height=" + height + ", fitnessRecords="
+				+ Arrays.toString(fitnessRecords) + ", mealRecords=" + Arrays.toString(mealRecords) + "]";
 	}	
 }

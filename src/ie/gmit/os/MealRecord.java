@@ -23,4 +23,9 @@ public class MealRecord {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	@Override
+	public String toString() {
+		return "MealRecord [index=" + index + ", typeOfMeal=" + typeOfMeal + ", description=" + description + "]";
+	}
+	
 }

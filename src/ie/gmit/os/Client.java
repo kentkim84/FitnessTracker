@@ -41,7 +41,8 @@ public class Client {
 					sendMessage(message);
 
 					if(message.compareToIgnoreCase("1")==0)
-					{						
+					{	
+						System.out.println("Login");
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 						message = sc.next();
@@ -56,47 +57,86 @@ public class Client {
 
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
+						message = (String)inputFromServer.readObject();
+						
+						if (message.compareToIgnoreCase("authorised")==0) {
+							message = (String)inputFromServer.readObject();
+							System.out.println(message);
+							
+							message = sc.next();
+							sendMessage(message);
+							
+							if (message.compareToIgnoreCase("1") == 0) {
+								
+							}
+							else if (message.compareToIgnoreCase("2") == 0) {
+								
+							}
+							else if (message.compareToIgnoreCase("3") == 0) {
+								
+							}
+							else if (message.compareToIgnoreCase("4") == 0) {
+								
+							}
+							else if (message.compareToIgnoreCase("5") == 0) {
+								
+							}
+							else if (message.compareToIgnoreCase("6") == 0) {
+								
+							}
+							
+						}
+						else if (message.compareToIgnoreCase("notAuthorised")==0) {
+						
+						}
 
 					}
 					else if(message.compareToIgnoreCase("2")==0)
 					{
+						System.out.println("Registration");
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
 						message = sc.next();
-						sendMessage(message);
-
-						if(message.equalsIgnoreCase("1"))
-						{
-							message = (String)inputFromServer.readObject();
-							System.out.println(message);
-							message = sc.next();
-							sendMessage(message);
-
-							message = (String)inputFromServer.readObject();
-							System.out.println(message);
-							message = sc.next();
-							sendMessage(message);
-
-							message = (String)inputFromServer.readObject();
-							System.out.println(message);
-
-						}
-
-						else if(message.equalsIgnoreCase("2"))
-						{
-							message = (String)inputFromServer.readObject();
-							System.out.println(message);
-							message = sc.next();
-							sendMessage(message);
-
-							message = (String)inputFromServer.readObject();
-							System.out.println(message);
-
-						}
+						sendMessage(message); // send client's name
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's address
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's pps number
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's age
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's weight
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's height
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's password
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);
+						message = sc.next();
+						sendMessage(message); // send client's confirm password
+						
+						message = (String)inputFromServer.readObject();
+						System.out.println(message);					
 					}
-
-
-
 				}
 				catch(ClassNotFoundException classNot)
 				{

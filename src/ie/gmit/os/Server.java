@@ -69,44 +69,23 @@ class ClientServiceHandler implements Runnable {
 		    // obtaining the i-th user
 			User user = new User();
 		    JSONObject jsonUser = (JSONObject) jsonUserList.get(i);
-		    //System.out.println("user: "+user);
-		    //long userIndex = (Long) jsonUser.get("index");
 		    user.setIndex((Long) jsonUser.get("index"));
-		    //System.out.println("index: "+userIndex);
-		    //String name = (String) jsonUser.get("name");
 		    user.setName((String) jsonUser.get("name"));
-		    //System.out.println("name: "+name);
-		    //String address = (String) jsonUser.get("address");
 		    user.setAddress((String) jsonUser.get("address"));
-		    //System.out.println("address: "+address);
-		    //String ppsn = (String) jsonUser.get("ppsn");
 		    user.setPpsn((String) jsonUser.get("ppsn"));
-		    //System.out.println("ppsn: "+ppsn);
-		    //long age = (Long) jsonUser.get("age");
+		    user.setPassword((String) jsonUser.get("password"));
 		    user.setAge((Long) jsonUser.get("age"));
-		    //System.out.println("age: "+age);
-		    //double weight = (Double) jsonUser.get("weight");
 		    user.setWeight((Double) jsonUser.get("weight"));
-		    //System.out.println("weight: "+weight);
-		    //double height = (Double) jsonUser.get("height");
-		    user.setHeight((Double) jsonUser.get("height"));
-		    //System.out.println("height: "+height);		    
+		    user.setHeight((Double) jsonUser.get("height"));	    
 		    JSONArray jsonFitnessRecords = (JSONArray) jsonUser.get("fitnessRecords");
 		    // create an array of the fitness record objects
 		    FitnessRecord[] fitnessRecords = new FitnessRecord[jsonFitnessRecords.size()];
 		    for (int j = 0; j < jsonFitnessRecords.size(); j++) {
 		    	fitnessRecords[j] = new FitnessRecord();
-		    	JSONObject jsonFitnessRecord = (JSONObject) jsonFitnessRecords.get(j);
-		    	//System.out.println("fitnessRecord: "+fitnessRecord);
-		    	//long fitnessIndex = (Long) jsonFitnessRecord.get("index");		    	
+		    	JSONObject jsonFitnessRecord = (JSONObject) jsonFitnessRecords.get(j);	    	
 		    	fitnessRecords[j].setIndex((Long) jsonFitnessRecord.get("index"));
-		    	//System.out.println("obj fitnessIndex: "+fitnessRecords[j].getIndex());
-		    	//String mode = (String) jsonFitnessRecord.get("mode");
 		    	fitnessRecords[j].setMode((String) jsonFitnessRecord.get("mode"));
-		    	//System.out.println("mode: "+mode);
-		    	//long duration = (Long) jsonFitnessRecord.get("duration");
 		    	fitnessRecords[j].setDuration((Long) jsonFitnessRecord.get("duration"));
-		    	//System.out.println("duration: "+duration);
 		    	// set a fitness record object into the user object
 		    	user.setFitness(fitnessRecords);
 		    }		    
@@ -116,16 +95,9 @@ class ClientServiceHandler implements Runnable {
 		    for (int k = 0; k < jsonMealRecords.size(); k++) {
 		    	mealRecords[k] = new MealRecord();
 		    	JSONObject jsonMealRecord = (JSONObject) jsonMealRecords.get(k);
-		    	//System.out.println("mealRecord: "+mealRecord);
-		    	//long mealIndex = (Long) jsonMealRecord.get("index");
 		    	mealRecords[k].setIndex((Long) jsonMealRecord.get("index"));
-		    	//System.out.println("mealIndex: "+mealIndex);
-		    	//String typeOfMeal = (String) jsonMealRecord.get("typeOfMeal");
 		    	mealRecords[k].setTypeOfMeal((String) jsonMealRecord.get("typeOfMeal"));
-		    	//System.out.println("typeOfMeal: "+typeOfMeal);
-		    	//String description = (String) jsonMealRecord.get("description");
 		    	mealRecords[k].setDescription((String) jsonMealRecord.get("description"));
-		    	//System.out.println("description: "+description);
 		    	// set a meal record object into the user object
 		    	user.setMeal(mealRecords);
 		    }
@@ -162,8 +134,8 @@ class ClientServiceHandler implements Runnable {
 		currentTimeString = currentHour + ":" + currentMinute + ":" + currentSecond + " GMT";
 		return currentTimeString;
 	}
-
-	public void run() {
+	
+	public void run() {		
 		try 
 		{
 			outputToClient = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -172,64 +144,133 @@ class ClientServiceHandler implements Runnable {
 			System.out.println("Accepted Client ID: " + Thread.currentThread().getName() 
 					+ ", Host Name: " + clientSocket.getInetAddress().getHostName()
 					+ ", Ip Address: " + clientSocket.getInetAddress().getHostAddress()
-					+ ", Current Time: " + getCurrentTime(System.currentTimeMillis()));
+					+ ", Current Time: " + getCurrentTime(System.currentTimeMillis()));			
 			do{
 				try
-				{					
+				{	
+					userList = readData(JSON_FILE);
 					// send a first menu message to the client
-					sendMessage("Welcome to The Fitness Tracker\nPress 1 for Login\nPress 2 for Registration\nPress 3 to exit"); 
+					sendMessage("Welcome to The Fitness Tracker\n"
+							+ "Press 1 for Login\n"
+							+ "Press 2 for Registration\n"
+							+ "Press 3 to exit"); 
 					// receive a message from the client
 					message = (String)inputFromClient.readObject(); 
 					// login stage
 					if(message.compareToIgnoreCase("1") == 0) {
 						// read the user list
-						userList = readData(JSON_FILE);
+						boolean authorised = false;					
 						System.out.println("User wishes to login");
 						sendMessage("Please enter your ID(same as PPSN)");
 						String loginID = (String)inputFromClient.readObject();
 						sendMessage("Please enter the password");
 						String password = (String)inputFromClient.readObject();
-
+						
+											
 						for (User user: userList) {
-							// client ID found
-							if(loginID.equals(user.getPpsn())) {
-								System.out.println("Client ID: " + loginID + " found");
-								sendMessage("Both strings are the same");
-							}							
-							else {
-								sendMessage("String 2 is bigger");
-							}							
+							System.out.println(user.toString());
+							// find authorised user
+							if(loginID.equals(user.getPpsn()) && password.equals(user.getPassword())) {
+								authorised = true;
+								System.out.println("Client ID: " + loginID + " and Password " + password + " authorised");								
+								sendMessage("Client ID: " + loginID + " and Password " + password + " authorised");
+								sendMessage("authorised");
+								
+								// when user is authorised, then display the main menu
+								/*
+								 * 1. add a fitness record into this user
+								 * 2. add a meal record into this user
+								 * 3. display the last ten fitness records
+								 * 4. dispaly the last ten meal records
+								 * 5. delete a fitness record using the index number
+								 * 6. delete a meal record using the index number
+								 * 7. exit from the menu
+								 */								
+								do {
+									sendMessage("Menu\n"
+											+ "Press 1 for add a fitness record\n"
+											+ "Press 2 for add a meal record\n"
+											+ "Press 3 for view the last ten fitness records\n"
+											+ "Press 4 for view the last ten meal records\n"
+											+ "Press 5 for delete a fitness record\n"
+											+ "Press 6 for delete a meal record\n"
+											+ "Press 7 to exit");
+									message = (String)inputFromClient.readObject();
+									
+									if (message.compareToIgnoreCase("1") == 0) {
+										
+									}
+									else if (message.compareToIgnoreCase("2") == 0) {
+										
+									}
+									else if (message.compareToIgnoreCase("3") == 0) {
+										
+									}
+									else if (message.compareToIgnoreCase("4") == 0) {
+										
+									}
+									else if (message.compareToIgnoreCase("5") == 0) {
+										
+									}
+									else if (message.compareToIgnoreCase("6") == 0) {
+										
+									}
+									
+								} while (!message.equals("7"));
+							}		
+						}
+						if (authorised == false) {
+							System.out.println("Client ID: " + loginID + " and Password " + password + " not authorised");
+							sendMessage("Client ID: " + loginID + " and Password " + password + " not authorised");
+							sendMessage("notAuthorised");
 						}
 
 					}
 					// registration stage
 					else if(message.compareToIgnoreCase("2") == 0) {
-						System.out.println("User wishes to complete the calculator test");
-
-						sendMessage("Press 1 for Multiply\nPress 2 for square root\n");
-						message=(String)inputFromClient.readObject();
-
-						if(message.equalsIgnoreCase("1")) {
-							sendMessage("Please enter number 1");
-							message = (String)inputFromClient.readObject();
-							int a = Integer.parseInt(message);
-
-							sendMessage("Please enter number 2");
-							message = (String)inputFromClient.readObject();
-							int b = Integer.parseInt(message);
-
-							sendMessage(""+(a*b));
+						int count = userList.size()-1;						
+						User user = new User();
+						
+						System.out.println("User wishes to register");						
+						// generate a new index number from the server system
+						user.setIndex(++count);
+						
+						sendMessage("Please enter your name");
+						user.setName((String)inputFromClient.readObject());
+						
+						sendMessage("Please enter your address");
+						user.setAddress((String)inputFromClient.readObject());
+						
+						sendMessage("Please enter your pps number - will be used as your login ID");
+						user.setPpsn((String)inputFromClient.readObject());
+						
+						sendMessage("Please enter your age");						
+						user.setAge(Long.parseLong((String)inputFromClient.readObject()));
+						
+						sendMessage("Please enter your weight");
+						user.setWeight(Double.parseDouble((String)inputFromClient.readObject()));
+						
+						sendMessage("Please enter your height");
+						user.setHeight(Double.parseDouble((String)inputFromClient.readObject()));
+							
+						String password ="";
+						String confirmPassword = "";
+						do {
+							sendMessage("Please enter your password");
+							password = (String)inputFromClient.readObject();
+														
+							sendMessage("Please enter your password again");
+							confirmPassword = (String)inputFromClient.readObject();							
+						} while (!password.equals(confirmPassword));
+						user.setPassword(password);
+						
+						sendMessage("Registration successful");
+						userList.add(user);
+						
+						System.out.println(user.toString());
+						for (User u : userList) {
+							System.out.println(u.toString());
 						}
-
-						else if(message.equalsIgnoreCase("2")) {
-							sendMessage("Please enter the number");
-							message = (String)inputFromClient.readObject();
-							int a = Integer.parseInt(message);
-
-							sendMessage(""+Math.sqrt(a));
-
-						}
-						writeData();
 					}
 
 				}
