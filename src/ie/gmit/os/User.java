@@ -1,20 +1,20 @@
 package ie.gmit.os;
 
 public class User {
-	private int index;
+	private long index;
 	private String name;
 	private String address;
 	private String ppsn;
-	private int age;
-	private float weight;
-	private float height;
+	private long age;
+	private double weight;
+	private double height;
 	private FitnessRecord[] fitnessRecords;
 	private MealRecord[] mealRecords;
 	
-	public int getIndex() {
+	public long getIndex() {
 		return index;
 	}
-	public void setIndex(int index) {
+	public void setIndex(long index) {
 		this.index = index;
 	}
 	public String getName() {
@@ -35,22 +35,22 @@ public class User {
 	public void setPpsn(String ppsn) {
 		this.ppsn = ppsn;
 	}
-	public int getAge() {
+	public long getAge() {
 		return age;
 	}
-	public void setAge(int age) {
+	public void setAge(long age) {
 		this.age = age;
 	}
-	public float getWeight() {
+	public double getWeight() {
 		return weight;
 	}
-	public void setWeight(float weight) {
+	public void setWeight(double weight) {
 		this.weight = weight;
 	}
-	public float getHeight() {
+	public double getHeight() {
 		return height;
 	}
-	public void setHeight(float height) {
+	public void setHeight(double height) {
 		this.height = height;
 	}
 	public FitnessRecord[] getFitness() {

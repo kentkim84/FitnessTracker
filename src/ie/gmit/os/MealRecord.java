@@ -1,14 +1,14 @@
 package ie.gmit.os;
 
 public class MealRecord {
-	private int index;
+	private long index;
 	private String typeOfMeal;
 	private String description;
 	
-	public int getIndex() {
+	public long getIndex() {
 		return index;
 	}
-	public void setIndex(int index) {
+	public void setIndex(long index) {
 		this.index = index;
 	}
 	public String getTypeOfMeal() {

@@ -53,63 +53,86 @@ class ClientServiceHandler implements Runnable {
 	boolean running = true;
 	ObjectOutputStream outputToClient;
 	ObjectInputStream inputFromClient;
+	private List<User> userList;
 
 	ClientServiceHandler(Socket s) {
-		clientSocket = s;		
+		clientSocket = s;
 	}
 
-	private void readData() throws IOException {
-		JSONParser parser = new JSONParser();		
-		try {
-			Object obj = parser.parse(new FileReader("data.json"));
-			JSONObject jsonObject = (JSONObject) obj;
-			JSONArray listOfUsers = (JSONArray) jsonObject.get("users");			
-			for (int i = 0; i < listOfUsers.size(); i++) {
-			    // obtaining the i-th user
-			    JSONObject user = (JSONObject) listOfUsers.get(i);
-			    System.out.println("user: "+user);
-			    long userIndex = (Long) user.get("index");
-			    System.out.println("index: "+userIndex);
-			    String name = (String) user.get("name");
-			    System.out.println("name: "+name);
-			    String address = (String) user.get("address");
-			    System.out.println("address: "+address);
-			    String ppsn = (String) user.get("ppsn");
-			    System.out.println("ppsn: "+ppsn);
-			    long age = (Long) user.get("age");
-			    System.out.println("age: "+age);
-			    double weight = (Double) user.get("weight");
-			    System.out.println("weight: "+weight);
-			    double height = (Double) user.get("height");
-			    System.out.println("height: "+height);
-			    
-			    JSONArray fitnessRecords = (JSONArray) user.get("fitnessRecords");
-			    for (int j = 0; j < fitnessRecords.size(); j++) {
-			    	JSONObject fitnessRecord = (JSONObject) fitnessRecords.get(j);
-			    	System.out.println("fitnessRecord: "+fitnessRecord);
-			    	long fitnessIndex = (Long) fitnessRecord.get("index");
-			    	System.out.println("fitnessIndex: "+fitnessIndex);
-			    	String mode = (String) fitnessRecord.get("mode");
-			    	System.out.println("mode: "+mode);
-			    	long duration = (Long) fitnessRecord.get("duration");
-			    	System.out.println("duration: "+duration);
-			    }
-			    
-			    JSONArray mealRecords = (JSONArray) user.get("mealRecords");
-			    for (int k = 0; k < mealRecords.size(); k++) {
-			    	JSONObject mealRecord = (JSONObject) mealRecords.get(k);
-			    	System.out.println("mealRecord: "+mealRecord);
-			    	long mealIndex = (Long) mealRecord.get("index");
-			    	System.out.println("mealIndex: "+mealIndex);
-			    	String typeOfMeal = (String) mealRecord.get("typeOfMeal");
-			    	System.out.println("typeOfMeal: "+typeOfMeal);
-			    	String description = (String) mealRecord.get("description");
-			    	System.out.println("description: "+description);
-			    }
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
+	private List<User> readData(String file) throws Exception {
+		JSONParser parser = new JSONParser();
+		userList = new ArrayList<User>();
+		Object obj = parser.parse(new FileReader(file));
+		JSONObject jsonObject = (JSONObject) obj;
+		JSONArray jsonUserList = (JSONArray) jsonObject.get("users");
+		for (int i = 0; i < jsonUserList.size(); i++) {
+		    // obtaining the i-th user
+			User user = new User();
+		    JSONObject jsonUser = (JSONObject) jsonUserList.get(i);
+		    //System.out.println("user: "+user);
+		    //long userIndex = (Long) jsonUser.get("index");
+		    user.setIndex((Long) jsonUser.get("index"));
+		    //System.out.println("index: "+userIndex);
+		    //String name = (String) jsonUser.get("name");
+		    user.setName((String) jsonUser.get("name"));
+		    //System.out.println("name: "+name);
+		    //String address = (String) jsonUser.get("address");
+		    user.setAddress((String) jsonUser.get("address"));
+		    //System.out.println("address: "+address);
+		    //String ppsn = (String) jsonUser.get("ppsn");
+		    user.setPpsn((String) jsonUser.get("ppsn"));
+		    //System.out.println("ppsn: "+ppsn);
+		    //long age = (Long) jsonUser.get("age");
+		    user.setAge((Long) jsonUser.get("age"));
+		    //System.out.println("age: "+age);
+		    //double weight = (Double) jsonUser.get("weight");
+		    user.setWeight((Double) jsonUser.get("weight"));
+		    //System.out.println("weight: "+weight);
+		    //double height = (Double) jsonUser.get("height");
+		    user.setHeight((Double) jsonUser.get("height"));
+		    //System.out.println("height: "+height);		    
+		    JSONArray jsonFitnessRecords = (JSONArray) jsonUser.get("fitnessRecords");
+		    // create an array of the fitness record objects
+		    FitnessRecord[] fitnessRecords = new FitnessRecord[jsonFitnessRecords.size()];
+		    for (int j = 0; j < jsonFitnessRecords.size(); j++) {
+		    	fitnessRecords[j] = new FitnessRecord();
+		    	JSONObject jsonFitnessRecord = (JSONObject) jsonFitnessRecords.get(j);
+		    	//System.out.println("fitnessRecord: "+fitnessRecord);
+		    	//long fitnessIndex = (Long) jsonFitnessRecord.get("index");		    	
+		    	fitnessRecords[j].setIndex((Long) jsonFitnessRecord.get("index"));
+		    	//System.out.println("obj fitnessIndex: "+fitnessRecords[j].getIndex());
+		    	//String mode = (String) jsonFitnessRecord.get("mode");
+		    	fitnessRecords[j].setMode((String) jsonFitnessRecord.get("mode"));
+		    	//System.out.println("mode: "+mode);
+		    	//long duration = (Long) jsonFitnessRecord.get("duration");
+		    	fitnessRecords[j].setDuration((Long) jsonFitnessRecord.get("duration"));
+		    	//System.out.println("duration: "+duration);
+		    	// set a fitness record object into the user object
+		    	user.setFitness(fitnessRecords);
+		    }		    
+		    JSONArray jsonMealRecords = (JSONArray) jsonUser.get("mealRecords");
+		    // create an array of the meal record objects
+		    MealRecord[] mealRecords = new MealRecord[jsonMealRecords.size()];
+		    for (int k = 0; k < jsonMealRecords.size(); k++) {
+		    	mealRecords[k] = new MealRecord();
+		    	JSONObject jsonMealRecord = (JSONObject) jsonMealRecords.get(k);
+		    	//System.out.println("mealRecord: "+mealRecord);
+		    	//long mealIndex = (Long) jsonMealRecord.get("index");
+		    	mealRecords[k].setIndex((Long) jsonMealRecord.get("index"));
+		    	//System.out.println("mealIndex: "+mealIndex);
+		    	//String typeOfMeal = (String) jsonMealRecord.get("typeOfMeal");
+		    	mealRecords[k].setTypeOfMeal((String) jsonMealRecord.get("typeOfMeal"));
+		    	//System.out.println("typeOfMeal: "+typeOfMeal);
+		    	//String description = (String) jsonMealRecord.get("description");
+		    	mealRecords[k].setDescription((String) jsonMealRecord.get("description"));
+		    	//System.out.println("description: "+description);
+		    	// set a meal record object into the user object
+		    	user.setMeal(mealRecords);
+		    }
+		    // add all user's data into the list
+		    userList.add(user);
 		}
+		return userList;
 	}
 
 	private void writeData() {
@@ -159,24 +182,24 @@ class ClientServiceHandler implements Runnable {
 					message = (String)inputFromClient.readObject(); 
 					// login stage
 					if(message.compareToIgnoreCase("1") == 0) {
-						readData();
+						// read the user list
+						userList = readData(JSON_FILE);
 						System.out.println("User wishes to login");
 						sendMessage("Please enter your ID(same as PPSN)");
 						String loginID = (String)inputFromClient.readObject();
 						sendMessage("Please enter the password");
 						String password = (String)inputFromClient.readObject();
 
-						/*for (String user: userList) {
+						for (User user: userList) {
 							// client ID found
-							if(loginID.equals(user)) {
-								System.out.println("Client ID: " + user + " found");
-
+							if(loginID.equals(user.getPpsn())) {
+								System.out.println("Client ID: " + loginID + " found");
 								sendMessage("Both strings are the same");
 							}							
 							else {
 								sendMessage("String 2 is bigger");
 							}							
-						}*/
+						}
 
 					}
 					// registration stage
