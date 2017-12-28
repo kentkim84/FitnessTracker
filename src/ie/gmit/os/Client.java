@@ -67,10 +67,30 @@ public class Client {
 							sendMessage(message);
 							
 							if (message.compareToIgnoreCase("1") == 0) {
+								System.out.println("Add a Fitness Record");
 								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);								
+								message = sc.next();
+								sendMessage(message);
+								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);								
+								message = sc.next();
+								sendMessage(message);								
 							}
 							else if (message.compareToIgnoreCase("2") == 0) {
+								System.out.println("Add a Meal Record");
 								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);								
+								message = sc.next();
+								sendMessage(message);
+								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);								
+								message = sc.next();
+								sendMessage(message);
 							}
 							else if (message.compareToIgnoreCase("3") == 0) {
 								
@@ -84,7 +104,6 @@ public class Client {
 							else if (message.compareToIgnoreCase("6") == 0) {
 								
 							}
-							
 						}
 						else if (message.compareToIgnoreCase("notAuthorised")==0) {
 						

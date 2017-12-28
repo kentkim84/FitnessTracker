@@ -12,8 +12,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Iterator;
@@ -54,23 +55,24 @@ class ClientServiceHandler implements Runnable {
 	boolean running = true;
 	ObjectOutputStream outputToClient;
 	ObjectInputStream inputFromClient;
-	private List<User> userList;
+	private List<User> userList;	
+	JSONObject jsonObject;
 
 	ClientServiceHandler(Socket s) {
 		clientSocket = s;
 	}
 
-	private JSONObject readData(String file) throws FileNotFoundException, IOException, ParseException {
+	private JSONObject readData() throws FileNotFoundException, IOException, ParseException {
 		// parse the source file into an object, then cast to a json object
 		JSONParser parser = new JSONParser();		
-		Object obj = parser.parse(new FileReader(file));
+		Object obj = parser.parse(new FileReader(JSON_FILE));
 		JSONObject jsonObject = (JSONObject) obj;
 		return jsonObject;
 	}
 	
-	private List<User> getListData(JSONObject jsonObject) {		
+	private List<User> getListData() {		
 		JSONArray jsonUserList = (JSONArray) jsonObject.get("users");
-		userList = new ArrayList<User>();
+		
 		for (int i = 0; i < jsonUserList.size(); i++) {
 		    // obtaining the i-th user
 			User user = new User();
@@ -117,7 +119,7 @@ class ClientServiceHandler implements Runnable {
 		return userList;
 	}
 
-	private void writeData(String file, JSONObject jsonObject, User user) throws IOException, ParseException {
+	private void writeData(User user) throws IOException, ParseException {
 		JSONObject newJsonObject = jsonObject;
 		JSONArray jsonUserList = (JSONArray) newJsonObject.get("users");		
 		JSONObject jsonUser = new JSONObject();
@@ -142,12 +144,24 @@ class ClientServiceHandler implements Runnable {
 		newJsonObject.put("users", jsonUserList);
 		
 		// write the top level json object to a json file (over-write)
-	    FileWriter fw = new FileWriter(file);
+	    FileWriter fw = new FileWriter(JSON_FILE);
 	    fw.write(newJsonObject.toJSONString());
 	    fw.flush();
 	    fw.close();
 	}
 	
+	private void addRecord(User user, FitnessRecord[] firnessRecords, MealRecord[] mealRecords, String mode) {
+		System.out.println(user.toString());
+		System.out.println(user.getFitness().toString());
+	}
+	
+	private void showRecord(User user, String mode) {
+		
+	}
+	
+	private void deleteRecord(User user, String mode) {
+		
+	}
 	/*private void addSomething() {
 		JSONArray jsonFitnessRecords = new JSONArray();		
 		for (FitnessRecord fitnessRecord : user.getFitness()) {		
@@ -177,8 +191,8 @@ class ClientServiceHandler implements Runnable {
 			outputToClient.writeObject(msg);
 			outputToClient.flush();			
 		}
-		catch(IOException ioException) {
-			ioException.printStackTrace();
+		catch(IOException ioe) {
+			ioe.printStackTrace();
 		}
 	}
 
@@ -199,6 +213,8 @@ class ClientServiceHandler implements Runnable {
 	public void run() {		
 		try 
 		{
+			jsonObject = new JSONObject();
+			userList = new ArrayList<User>();
 			outputToClient = new ObjectOutputStream(clientSocket.getOutputStream());
 			outputToClient.flush();
 			inputFromClient = new ObjectInputStream(clientSocket.getInputStream());		
@@ -209,9 +225,8 @@ class ClientServiceHandler implements Runnable {
 			do{
 				try
 				{	
-					JSONObject jsonObject = new JSONObject();
-					jsonObject = readData(JSON_FILE);
-					userList = getListData(jsonObject);
+					jsonObject = readData();				
+					userList = getListData();
 					// send a first menu message to the client
 					sendMessage("Welcome to The Fitness Tracker\n"
 							+ "Press 1 for Login\n"
@@ -222,18 +237,20 @@ class ClientServiceHandler implements Runnable {
 					// login stage
 					if(message.compareToIgnoreCase("1") == 0) {
 						// read the user list\						
-						boolean authorised = false;					
-						System.out.println("User wishes to login");
+						boolean authorised = false;				
+						System.out.println("Client wishes to login");
 						sendMessage("Please enter your ID(same as PPSN)");
 						String loginID = (String)inputFromClient.readObject();
 						sendMessage("Please enter the password");
 						String password = (String)inputFromClient.readObject();
-						
-											
+																
 						for (User user: userList) {
-							System.out.println(user.toString());
 							// find authorised user
-							if(loginID.equals(user.getPpsn()) && password.equals(user.getPassword())) {
+							if(loginID.equals(user.getPpsn()) && password.equals(user.getPassword())) {								
+								List<FitnessRecord> fitnessList = new ArrayList<FitnessRecord>(Arrays.asList(user.getFitness()));
+								List<MealRecord> mealList = new ArrayList<MealRecord>(Arrays.asList(user.getMeal()));
+								int lastFitnessRecordIndex = user.getFitness().length-1;
+								int lastMealRecordIndex = user.getMeal().length-1;
 								authorised = true;
 								System.out.println("Client ID: " + loginID + " and Password " + password + " authorised");								
 								sendMessage("Client ID: " + loginID + " and Password " + password + " authorised");
@@ -257,47 +274,83 @@ class ClientServiceHandler implements Runnable {
 											+ "Press 4 for view the last ten meal records\n"
 											+ "Press 5 for delete a fitness record\n"
 											+ "Press 6 for delete a meal record\n"
-											+ "Press 7 to exit");
+											+ "Press 7 to exit and confirm changes");
 									message = (String)inputFromClient.readObject();
 									
 									if (message.compareToIgnoreCase("1") == 0) {
+										FitnessRecord[] fitnessRecords = new FitnessRecord[user.getFitness().length+1];
+										System.out.println("new length: "+fitnessRecords.length);
+										fitnessRecords[lastFitnessRecordIndex+1] = new FitnessRecord();
+
+										sendMessage("Enter a mode of fitness");
+										String mode = (String)inputFromClient.readObject();
 										
+										sendMessage("Enter the duration of fitness");
+										long duration = Long.parseLong((String)inputFromClient.readObject());
+										
+										fitnessRecords[lastFitnessRecordIndex+1].setIndex(lastFitnessRecordIndex+1);
+										fitnessRecords[lastFitnessRecordIndex+1].setMode(mode);
+										fitnessRecords[lastFitnessRecordIndex+1].setDuration(duration);
+																				
+										System.arraycopy(user.getFitness(), 0, fitnessRecords, 0, user.getFitness().length);
+										
+										user.setFitness(fitnessRecords);
+										
+										addRecord(user, fitnessRecords, null, "fitness");
 									}
 									else if (message.compareToIgnoreCase("2") == 0) {
+										MealRecord[] mealRecords = new MealRecord[user.getMeal().length+1];
+										System.out.println("new length: "+mealRecords.length);
+										mealRecords[lastMealRecordIndex+1] = new MealRecord();
+
+										sendMessage("Enter a type of meal");
+										String typeOfMeal = (String)inputFromClient.readObject();
 										
+										sendMessage("Enter the duration of fitness");
+										String description = (String)inputFromClient.readObject();
+										
+										mealRecords[lastMealRecordIndex+1].setIndex(lastMealRecordIndex+1);
+										mealRecords[lastMealRecordIndex+1].setTypeOfMeal(typeOfMeal);;
+										mealRecords[lastMealRecordIndex+1].setDescription(description);;
+																				
+										System.arraycopy(user.getMeal(), 0, mealRecords, 0, user.getMeal().length);
+										
+										user.setMeal(mealRecords);;
+										
+										addRecord(user, null, mealRecords, "meal");
 									}
 									else if (message.compareToIgnoreCase("3") == 0) {
-										
+										showRecord(user, "fitness");
 									}
 									else if (message.compareToIgnoreCase("4") == 0) {
-										
+										showRecord(user, "meal");									
 									}
 									else if (message.compareToIgnoreCase("5") == 0) {
-										
+										deleteRecord(user, "fitness");
 									}
 									else if (message.compareToIgnoreCase("6") == 0) {
-										
+										deleteRecord(user, "meal");
 									}
 									
 								} while (!message.equals("7"));
-							}		
+								break;				
+							}							
 						}
-						if (authorised == false) {
+						if (authorised != true) {
 							System.out.println("Client ID: " + loginID + " and Password " + password + " not authorised");
 							sendMessage("Client ID: " + loginID + " and Password " + password + " not authorised");
 							sendMessage("notAuthorised");
 						}
-
-					}
+					}					
 					// registration stage
 					else if(message.compareToIgnoreCase("2") == 0) {
-						int count = userList.size()-1;
+						int lastIndex = userList.size()-1;
 						boolean ppsnFound;
 						User user = new User();
 						
-						System.out.println("User wishes to register");						
+						System.out.println("Client wishes to register");						
 						// generate a new index number from the server system
-						user.setIndex(++count);
+						user.setIndex(++lastIndex);
 						
 						sendMessage("Please enter your name");
 						user.setName((String)inputFromClient.readObject());
@@ -344,16 +397,11 @@ class ClientServiceHandler implements Runnable {
 						user.setPassword(password);
 						
 						sendMessage("Registration successful");												
-						// System.out.println(user.toString());
-						/*for (User u : userList) {
-							System.out.println(u.toString());
-						}*/
-						writeData(JSON_FILE, jsonObject, user);
-					}
-
+						writeData(user);
+					}					
 				}
-				catch(ClassNotFoundException classnot){
-					System.err.println("Data received in unknown format");
+				catch(ClassNotFoundException cnfe){					
+					cnfe.printStackTrace();
 				}
 
 			} while(!message.equals("3"));		
