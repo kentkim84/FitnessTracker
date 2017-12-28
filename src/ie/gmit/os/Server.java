@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,11 +60,15 @@ class ClientServiceHandler implements Runnable {
 		clientSocket = s;
 	}
 
-	private List<User> readData(String file) throws Exception {
+	private JSONObject readData(String file) throws FileNotFoundException, IOException, ParseException {
 		JSONParser parser = new JSONParser();
 		userList = new ArrayList<User>();
 		Object obj = parser.parse(new FileReader(file));
 		JSONObject jsonObject = (JSONObject) obj;
+		return jsonObject;
+	}
+	
+	private List<User> getListData(JSONObject jsonObject) {
 		JSONArray jsonUserList = (JSONArray) jsonObject.get("users");
 		for (int i = 0; i < jsonUserList.size(); i++) {
 		    // obtaining the i-th user
@@ -107,9 +112,59 @@ class ClientServiceHandler implements Runnable {
 		return userList;
 	}
 
-	private void writeData() {
-
+	private void writeData(String file, JSONObject jsonObject, User user) throws IOException, ParseException {
+		JSONObject newJsonObject = jsonObject;
+		JSONArray jsonUserList = (JSONArray) newJsonObject.get("users");
+		
+		JSONObject jsonUser = new JSONObject();
+		jsonUser.put("index", user.getIndex());
+		jsonUser.put("name", user.getName());
+		jsonUser.put("address", user.getAddress());
+		jsonUser.put("ppsn", user.getPpsn());
+		jsonUser.put("password", user.getPassword());
+		jsonUser.put("age", user.getAge());
+		jsonUser.put("weight", user.getWeight());
+		jsonUser.put("height", user.getHeight());
+		
+		JSONArray jsonFitnessRecords = new JSONArray();
+		jsonUser.put("fitnessRecords", null);
+		
+		JSONArray jsonMealRecords = new JSONArray();
+		jsonUser.put("mealRecords", null);
+		
+		jsonUserList.add(jsonUser);
+		
+		newJsonObject.put("users", jsonUserList);
+		
+	    FileWriter fw = new FileWriter(file); //the true will append the new data
+	    fw.write(newJsonObject.toJSONString()); //appends the string to the file
+	    fw.flush();
+	    fw.close();
 	}
+	
+	/*private void addSomething() {
+		JSONArray jsonFitnessRecords = new JSONArray();		
+		for (FitnessRecord fitnessRecord : user.getFitness()) {		
+			JSONObject jsonFitnessRecord = new JSONObject();
+			jsonFitnessRecord.put("index", fitnessRecord.getIndex());
+			jsonFitnessRecord.put("mode", fitnessRecord.getMode());
+			jsonFitnessRecord.put("duration", fitnessRecord.getDuration());
+			jsonFitnessRecords.add(jsonFitnessRecord);
+			System.out.println(fitnessRecord.toString());
+		}
+		jsonUser.put("fitnessRecords", jsonFitnessRecords);
+		
+		JSONArray jsonMealRecords = new JSONArray();
+		for (MealRecord mealRecord : user.getMeal()) {
+			JSONObject jsonMealRecord = new JSONObject();
+			jsonMealRecord.put("index", mealRecord.getIndex());
+			jsonMealRecord.put("typeOfMeal", mealRecord.getTypeOfMeal());
+			jsonMealRecord.put("description", mealRecord.getDescription());
+			jsonMealRecords.add(jsonMealRecord);
+			System.out.println(mealRecord.toString());
+		}
+		jsonUser.put("mealRecords", jsonMealRecords);
+	}*/
 
 	private void sendMessage(String msg) {
 		try {
@@ -148,17 +203,19 @@ class ClientServiceHandler implements Runnable {
 			do{
 				try
 				{	
-					userList = readData(JSON_FILE);
+					JSONObject jsonObject = new JSONObject();
+					jsonObject = readData(JSON_FILE);
 					// send a first menu message to the client
 					sendMessage("Welcome to The Fitness Tracker\n"
 							+ "Press 1 for Login\n"
 							+ "Press 2 for Registration\n"
-							+ "Press 3 to exit"); 
+							+ "Press 3 to exit");
 					// receive a message from the client
 					message = (String)inputFromClient.readObject(); 
 					// login stage
 					if(message.compareToIgnoreCase("1") == 0) {
 						// read the user list
+						userList = getListData(jsonObject);
 						boolean authorised = false;					
 						System.out.println("User wishes to login");
 						sendMessage("Please enter your ID(same as PPSN)");
@@ -264,13 +321,12 @@ class ClientServiceHandler implements Runnable {
 						} while (!password.equals(confirmPassword));
 						user.setPassword(password);
 						
-						sendMessage("Registration successful");
-						userList.add(user);
-						
-						System.out.println(user.toString());
-						for (User u : userList) {
+						sendMessage("Registration successful");												
+						// System.out.println(user.toString());
+						/*for (User u : userList) {
 							System.out.println(u.toString());
-						}
+						}*/
+						writeData(JSON_FILE, jsonObject, user);
 					}
 
 				}
