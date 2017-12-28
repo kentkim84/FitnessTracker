@@ -106,8 +106,15 @@ public class Client {
 						
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);
-						message = sc.next();
-						sendMessage(message); // send client's pps number
+						String ppsnFound = "";
+						do {							
+							message = sc.next();
+							sendMessage(message); // send client's pps number
+							ppsnFound = (String)inputFromServer.readObject();
+							if (ppsnFound.equalsIgnoreCase("ppsnFound")) {
+								System.out.println(message + " already exists, enter a different pps number");
+							}
+						} while (ppsnFound.equalsIgnoreCase("ppsnFound"));
 						
 						message = (String)inputFromServer.readObject();
 						System.out.println(message);

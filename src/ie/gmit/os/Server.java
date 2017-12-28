@@ -61,15 +61,16 @@ class ClientServiceHandler implements Runnable {
 	}
 
 	private JSONObject readData(String file) throws FileNotFoundException, IOException, ParseException {
-		JSONParser parser = new JSONParser();
-		userList = new ArrayList<User>();
+		// parse the source file into an object, then cast to a json object
+		JSONParser parser = new JSONParser();		
 		Object obj = parser.parse(new FileReader(file));
 		JSONObject jsonObject = (JSONObject) obj;
 		return jsonObject;
 	}
 	
-	private List<User> getListData(JSONObject jsonObject) {
+	private List<User> getListData(JSONObject jsonObject) {		
 		JSONArray jsonUserList = (JSONArray) jsonObject.get("users");
+		userList = new ArrayList<User>();
 		for (int i = 0; i < jsonUserList.size(); i++) {
 		    // obtaining the i-th user
 			User user = new User();
@@ -84,27 +85,31 @@ class ClientServiceHandler implements Runnable {
 		    user.setHeight((Double) jsonUser.get("height"));	    
 		    JSONArray jsonFitnessRecords = (JSONArray) jsonUser.get("fitnessRecords");
 		    // create an array of the fitness record objects
-		    FitnessRecord[] fitnessRecords = new FitnessRecord[jsonFitnessRecords.size()];
-		    for (int j = 0; j < jsonFitnessRecords.size(); j++) {
-		    	fitnessRecords[j] = new FitnessRecord();
-		    	JSONObject jsonFitnessRecord = (JSONObject) jsonFitnessRecords.get(j);	    	
-		    	fitnessRecords[j].setIndex((Long) jsonFitnessRecord.get("index"));
-		    	fitnessRecords[j].setMode((String) jsonFitnessRecord.get("mode"));
-		    	fitnessRecords[j].setDuration((Long) jsonFitnessRecord.get("duration"));
-		    	// set a fitness record object into the user object
-		    	user.setFitness(fitnessRecords);
-		    }		    
+		    if (jsonFitnessRecords != null) {
+		    	FitnessRecord[] fitnessRecords = new FitnessRecord[jsonFitnessRecords.size()];
+			    for (int j = 0; j < jsonFitnessRecords.size(); j++) {
+			    	fitnessRecords[j] = new FitnessRecord();
+			    	JSONObject jsonFitnessRecord = (JSONObject) jsonFitnessRecords.get(j);	    	
+			    	fitnessRecords[j].setIndex((Long) jsonFitnessRecord.get("index"));
+			    	fitnessRecords[j].setMode((String) jsonFitnessRecord.get("mode"));
+			    	fitnessRecords[j].setDuration((Long) jsonFitnessRecord.get("duration"));
+			    	// set a fitness record object into the user object
+			    	user.setFitness(fitnessRecords);
+			    }			    
+		    }
 		    JSONArray jsonMealRecords = (JSONArray) jsonUser.get("mealRecords");
 		    // create an array of the meal record objects
-		    MealRecord[] mealRecords = new MealRecord[jsonMealRecords.size()];
-		    for (int k = 0; k < jsonMealRecords.size(); k++) {
-		    	mealRecords[k] = new MealRecord();
-		    	JSONObject jsonMealRecord = (JSONObject) jsonMealRecords.get(k);
-		    	mealRecords[k].setIndex((Long) jsonMealRecord.get("index"));
-		    	mealRecords[k].setTypeOfMeal((String) jsonMealRecord.get("typeOfMeal"));
-		    	mealRecords[k].setDescription((String) jsonMealRecord.get("description"));
-		    	// set a meal record object into the user object
-		    	user.setMeal(mealRecords);
+		    if (jsonMealRecords != null) {
+			    MealRecord[] mealRecords = new MealRecord[jsonMealRecords.size()];
+			    for (int k = 0; k < jsonMealRecords.size(); k++) {
+			    	mealRecords[k] = new MealRecord();
+			    	JSONObject jsonMealRecord = (JSONObject) jsonMealRecords.get(k);
+			    	mealRecords[k].setIndex((Long) jsonMealRecord.get("index"));
+			    	mealRecords[k].setTypeOfMeal((String) jsonMealRecord.get("typeOfMeal"));
+			    	mealRecords[k].setDescription((String) jsonMealRecord.get("description"));
+			    	// set a meal record object into the user object
+			    	user.setMeal(mealRecords);
+			    }
 		    }
 		    // add all user's data into the list
 		    userList.add(user);
@@ -114,8 +119,7 @@ class ClientServiceHandler implements Runnable {
 
 	private void writeData(String file, JSONObject jsonObject, User user) throws IOException, ParseException {
 		JSONObject newJsonObject = jsonObject;
-		JSONArray jsonUserList = (JSONArray) newJsonObject.get("users");
-		
+		JSONArray jsonUserList = (JSONArray) newJsonObject.get("users");		
 		JSONObject jsonUser = new JSONObject();
 		jsonUser.put("index", user.getIndex());
 		jsonUser.put("name", user.getName());
@@ -132,12 +136,14 @@ class ClientServiceHandler implements Runnable {
 		JSONArray jsonMealRecords = new JSONArray();
 		jsonUser.put("mealRecords", null);
 		
+		// append a new json user object to an already existing json array object
 		jsonUserList.add(jsonUser);
-		
+		// put the json array object called 'users' into the top level of a json object
 		newJsonObject.put("users", jsonUserList);
 		
-	    FileWriter fw = new FileWriter(file); //the true will append the new data
-	    fw.write(newJsonObject.toJSONString()); //appends the string to the file
+		// write the top level json object to a json file (over-write)
+	    FileWriter fw = new FileWriter(file);
+	    fw.write(newJsonObject.toJSONString());
 	    fw.flush();
 	    fw.close();
 	}
@@ -205,6 +211,7 @@ class ClientServiceHandler implements Runnable {
 				{	
 					JSONObject jsonObject = new JSONObject();
 					jsonObject = readData(JSON_FILE);
+					userList = getListData(jsonObject);
 					// send a first menu message to the client
 					sendMessage("Welcome to The Fitness Tracker\n"
 							+ "Press 1 for Login\n"
@@ -214,8 +221,7 @@ class ClientServiceHandler implements Runnable {
 					message = (String)inputFromClient.readObject(); 
 					// login stage
 					if(message.compareToIgnoreCase("1") == 0) {
-						// read the user list
-						userList = getListData(jsonObject);
+						// read the user list\						
 						boolean authorised = false;					
 						System.out.println("User wishes to login");
 						sendMessage("Please enter your ID(same as PPSN)");
@@ -285,7 +291,8 @@ class ClientServiceHandler implements Runnable {
 					}
 					// registration stage
 					else if(message.compareToIgnoreCase("2") == 0) {
-						int count = userList.size()-1;						
+						int count = userList.size()-1;
+						boolean ppsnFound;
 						User user = new User();
 						
 						System.out.println("User wishes to register");						
@@ -299,7 +306,22 @@ class ClientServiceHandler implements Runnable {
 						user.setAddress((String)inputFromClient.readObject());
 						
 						sendMessage("Please enter your pps number - will be used as your login ID");
-						user.setPpsn((String)inputFromClient.readObject());
+						do {
+							ppsnFound = false;
+							user.setPpsn((String)inputFromClient.readObject());							
+							for (User tempUser : userList) {
+								// check if a pps number already exists
+								if (tempUser.getPpsn().equalsIgnoreCase(user.getPpsn())) {
+									ppsnFound = true;									
+								}					
+							}
+							if (ppsnFound == true) {
+								sendMessage("ppsnFound");								
+							}
+							else {
+								sendMessage("ppsnNotFound");								
+							}
+						} while (ppsnFound == true);
 						
 						sendMessage("Please enter your age");						
 						user.setAge(Long.parseLong((String)inputFromClient.readObject()));
