@@ -93,16 +93,30 @@ public class Client {
 								sendMessage(message);
 							}
 							else if (message.compareToIgnoreCase("3") == 0) {
-								
+								int length = Integer.parseInt((String)inputFromServer.readObject());								
+								for (int i = 0; i < length; i++) {
+									message = (String)inputFromServer.readObject();
+									System.out.println(message);
+								}
 							}
 							else if (message.compareToIgnoreCase("4") == 0) {
-								
+								int length = Integer.parseInt((String)inputFromServer.readObject());								
+								for (int i = 0; i < length; i++) {
+									message = (String)inputFromServer.readObject();
+									System.out.println(message);
+								}
 							}
 							else if (message.compareToIgnoreCase("5") == 0) {
-								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);
+								message = sc.next();
+								sendMessage(message);
 							}
 							else if (message.compareToIgnoreCase("6") == 0) {
-								
+								message = (String)inputFromServer.readObject();
+								System.out.println(message);
+								message = sc.next();
+								sendMessage(message);
 							}
 						}
 						else if (message.compareToIgnoreCase("notAuthorised")==0) {
