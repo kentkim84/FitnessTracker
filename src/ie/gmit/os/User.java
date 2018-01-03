@@ -3,8 +3,7 @@ package ie.gmit.os;
 
 import java.util.List;
 
-public class User {
-	private long index;
+public class User {	
 	private String name;
 	private String address;
 	private String ppsn;
@@ -15,12 +14,6 @@ public class User {
 	private List<FitnessRecord> fitnessRecordList;
 	private List<MealRecord> mealRecordList;
 	
-	public long getIndex() {
-		return index;
-	}
-	public void setIndex(long index) {
-		this.index = index;
-	}
 	public String getName() {
 		return name;
 	}
@@ -77,8 +70,8 @@ public class User {
 	}
 	@Override
 	public String toString() {
-		return "User [index=" + index + ", name=" + name + ", address=" + address + ", ppsn=" + ppsn + ", password="
-				+ password + ", age=" + age + ", weight=" + weight + ", height=" + height + ", fitnessRecordList="
-				+ fitnessRecordList + ", mealRecordList=" + mealRecordList + "]";
-	}	
+		return "{name=" + name + ", address=" + address + ", ppsn=" + ppsn + ", password=" + password + ", age="
+				+ age + ", weight=" + weight + ", height=" + height + ", fitnessRecordList=" + fitnessRecordList
+				+ ", mealRecordList=" + mealRecordList + "}";
+	}
 }

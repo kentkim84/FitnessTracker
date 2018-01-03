@@ -1,30 +1,23 @@
 package ie.gmit.os;
 
-public class FitnessRecord {
-	private long index;
+public class FitnessRecord {	
 	private String mode;
-	private double duration;
+	private long duration;
 	
-	public long getIndex() {
-		return index;
-	}
-	public void setIndex(long index) {
-		this.index = index;
-	}
 	public String getMode() {
 		return mode;
 	}
 	public void setMode(String mode) {
 		this.mode = mode;
 	}
-	public double getDuration() {
+	public long getDuration() {
 		return duration;
 	}
-	public void setDuration(double duration) {
+	public void setDuration(long duration) {
 		this.duration = duration;
 	}
 	@Override
 	public String toString() {
-		return "FitnessRecord [index=" + index + ", mode=" + mode + ", duration=" + duration + "]";
-	}	
+		return "{\"mode\":" + "\"" + mode + "\"" + ", \"duration\":" + duration + "}";
+	}		
 }
